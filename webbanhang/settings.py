@@ -25,10 +25,11 @@ SECRET_KEY = 'django-insecure-#&t(x&a6$w9o*q#n2so6(niikk5__7dmdpfj7g6&5k%_7*3af&
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+# webbanhang/settings.py
 
+ALLOWED_HOSTS = ['webbanhang1.onrender.com', 'localhost', '127.0.0.1']
 LOGIN_REDIRECT_URL = '/'
 # Application definition
 
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Quan trọng: Phải nằm ngay sau SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -186,10 +188,11 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        # Sửa dòng này để dùng WhiteNoise thay vì mặc định
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Khi sử dụng Cloudinary, Django không cần quản lý MEDIA_ROOT.
 # MEDIA_URL chỉ cần một giá trị placeholder.
 MEDIA_URL = '/media/'
