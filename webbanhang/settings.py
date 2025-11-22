@@ -196,3 +196,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Khi sử dụng Cloudinary, Django không cần quản lý MEDIA_ROOT.
 # MEDIA_URL chỉ cần một giá trị placeholder.
 MEDIA_URL = '/media/'
+# settings.py
+
+# Cấu hình này giúp Whitenoise không báo lỗi khi thiếu file source map
+WHITENOISE_MANIFEST_STRICT = False
