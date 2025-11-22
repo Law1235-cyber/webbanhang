@@ -124,7 +124,9 @@ STATICFILES_DIRS = [
 ]
 
 # Sử dụng WhiteNoise để nén và phục vụ file tĩnh
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Dùng dòng này thay cho dòng cũ (Bỏ chữ Manifest đi)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # --- CẤU HÌNH MEDIA (CLOUDINARY) ---
