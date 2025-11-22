@@ -1,0 +1,51 @@
+{% extends 'app/base.html'%} 
+{% load static %}
+{% load widget_tweaks %}
+
+{% block login_content %} 
+<section class="vh-100" style="background-color: #eee;">
+    <div class="container h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-sm-10 col-md-8 col-lg-5">
+                
+                <div class="card shadow-lg p-4 p-md-5">
+                    <h3 class="card-title text-center mb-4 text-success">Đăng Nhập Tài Khoản</h3>
+                    
+                    <form method="POST" action="{% url 'login' %}">
+                        {% csrf_token %} 
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ field.id_for_label }}">
+                                    {% if 'username' in field.name %}Tên đăng nhập / Email
+                                    {% elif 'password' in field.name %}Mật khẩu
+                                    {% else %}{{ field.label }}
+                                    {% endif %}
+                                </label>
+                                
+                                {{ field|attr:"class:form-control" }}
+                                
+                                {% for error in field.errors %}
+                                    <div class="alert alert-danger mt-1 small p-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">Đăng nhập</button>
+                        </div>
+                        
+                        <p class="text-center mt-3">
+                            Chưa có tài khoản? <a href="{% url 'register' %}" class="text-decoration-none">Đăng ký ngay</a>
+                        </p>
+                    </form>
+                    </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock login_content %}

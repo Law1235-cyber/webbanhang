@@ -1,0 +1,89 @@
+{% extends 'app/base.html'%} 
+{%load static%} 
+
+{% load static %}
+{% block banner-slider %}
+<div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel">
+    
+    <div class="carousel-indicators">
+        {% for banner in banners %}
+        <button type="button" 
+                data-bs-target="#carouselExampleDark" 
+                data-bs-slide-to="{{ forloop.counter0 }}" 
+                class="{% if forloop.first %}active{% endif %}" 
+                aria-current="{% if forloop.first %}true{% else %}false{% endif %}" 
+                aria-label="Slide {{ forloop.counter }}">
+        </button>
+        {% endfor %}
+    </div>
+
+    <div class="carousel-inner custom-carousel-height align-items-lg-center" style="max-height: 400px;"> 
+        
+        {% for banner in banners %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="8000">
+            
+            <img src="{{ banner.image.url }}" class="d-block w-100 custom-image-fit" alt="{{ banner.name }}"> 
+            
+            <!-- <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded-3 custom-caption-position"
+                 style="max-width: 70%; margin-bottom: 592px;">
+                <h5 class="text-white fw-bold">{{ banner.name }}</h5>
+                <p class="text-white-50">{{ banner.description }}</p>
+            </div> -->
+        </div>
+        {% endfor %}
+
+    </div>
+    
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+{% endblock banner-slider %}
+
+{% block main-content %}
+<div class="text-center my-4 fw-bold fs-4  ">Sản phẩm mới nhất</div>
+<div class="row mt-4 g-4 " style="width: 90%; margin: auto; ">
+    {% for product in products %}
+    <div class="col-12 col-sm-6 col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="p-3 text-center">
+                <a href="{% url 'product_detail' pk=product.id %}"><img
+                        class="card-img-top img-fluid mb-3 custom-image-fit animate__animated animate__fadeIn"
+                        src="{{ product.imageURL }}" alt="{{ product.name }}"
+                        style="max-height: 200px; width: auto;" /></a>
+            </div>
+
+            <div class="card-body d-flex flex-column">
+
+                <h6 class="card-title"><strong>{{product.name}}</strong></h6>
+                <hr class="my-2" />
+
+                <h4 class="text-danger mt-auto mb-3">
+                    <strong>${{product.price |floatformat:2}}</strong>
+                </h4>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button data-product="{{ product.id }}" data-action="add"
+                        class="btn btn-outline-secondary add-btn update-cart-btn btn-sm flex-grow-1 me-2">
+                        Thêm vào giỏ hàng
+                    </button>
+                    <a class="btn btn-outline-success btn-sm flex-grow-1"
+                        href="{% url 'product_detail' pk=product.id %}">xem</a>
+                    <a class="btn btn-outline-danger btn-sm flex-grow-1 " style="margin-left: 10px;"
+                        href="{% url 'cart'%}">buy</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{%endblock main-content %}
+
+
+
