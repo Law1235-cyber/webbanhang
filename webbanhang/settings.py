@@ -134,7 +134,6 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Sử dụng backend cơ bản để tránh lỗi nén file và lỗi mất CSS
         "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
