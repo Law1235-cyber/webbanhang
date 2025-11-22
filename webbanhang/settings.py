@@ -183,14 +183,16 @@ CLOUDINARY_STORAGE = {
 }
 
 # Báo cho Django biết là: "Khi upload file media, hãy dùng Cloudinary"
+# settings.py
+
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Dùng CompressedStaticFilesStorage thay vì CompressedManifestStaticFilesStorage
-        # Class này nén file nhưng không yêu cầu file map phải tồn tại -> Sẽ không lỗi build
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # Dùng Class cơ bản nhất: Không nén, không tạo hash, chỉ copy file.
+        # Đảm bảo 100% không lỗi build.
+        "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
 STATIC_ROOT = BASE_DIR / 'staticfiles'
