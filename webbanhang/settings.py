@@ -188,8 +188,9 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Sửa dòng này để dùng WhiteNoise thay vì mặc định
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Dùng CompressedStaticFilesStorage thay vì CompressedManifestStaticFilesStorage
+        # Class này nén file nhưng không yêu cầu file map phải tồn tại -> Sẽ không lỗi build
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 STATIC_ROOT = BASE_DIR / 'staticfiles'
