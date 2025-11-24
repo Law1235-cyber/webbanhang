@@ -137,8 +137,9 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Đã xóa chữ "Manifest" đi để không bị lỗi thiếu file .map
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # Đã chuyển sang chế độ cơ bản: KHÔNG NÉN, KHÔNG MANIFEST
+        # Để tránh lỗi FileNotFoundError khi deploy
+        "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
 
@@ -146,4 +147,4 @@ STORAGES = {
 WHITENOISE_MANIFEST_STRICT = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
