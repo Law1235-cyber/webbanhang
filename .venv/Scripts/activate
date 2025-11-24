@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\dhai8\OneDrive\Dokumen\python\web_hoc_online\webbanhang1\webbanhang1\.venv"
+VIRTUAL_ENV="C:\Users\dhai8\OneDrive\Dokumen\python\web_hoc_online\webbanhang\webbanhang\.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

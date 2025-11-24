@@ -9,10 +9,12 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#&t(x&a6$w9o*q#n2so6(niikk5__7dmdpfj7g6&5k%_7*3af&'
+# Ưu tiên lấy từ biến môi trường trên Render, nếu không có thì dùng key mặc định (để chạy local)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-#&t(x&a6$w9o*q#n2so6(niikk5__7dmdpfj7g6&5k%_7*3af&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False  # Đã sửa 'Sai' thành 'False'
+# Tự động False trên Render, True trên máy local
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['webbanhang1.onrender.com', 'localhost', '127.0.0.1']
 
@@ -20,10 +22,10 @@ LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 INSTALLED_APPS = [
-    'jazzmin',  # Đặt ở đầu để giao diện Admin đẹp
-    'cloudinary_storage',
-    'cloudinary', # Đã sửa 'đám mây' thành 'cloudinary'
-
+    'jazzmin',  # Giao diện Admin đẹp (phải đặt đầu tiên)
+    'cloudinary_storage', # Quản lý lưu trữ ảnh
+    'cloudinary',         # Thư viện Cloudinary
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,26 +33,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'app', # Đã sửa 'ứng dụng' thành 'app' (tên app của bạn)
+    'app', # Tên app của bạn
     'widget_tweaks',
     'django_cleanup.apps.CleanupConfig',
-    'rest_framework', # Thêm nếu bạn dùng API
-    'rest_framework_simplejwt', # Thêm nếu bạn dùng JWT
-    'allauth', # Thêm nếu dùng allauth
+    'rest_framework', 
+    'rest_framework_simplejwt', 
+    'allauth', 
     'allauth.account',
     'crispy_forms',
 ]
 
-MIDDLEWARE = [ # Đã sửa 'PHẦN MỀM TRUNG GIAN' thành 'MIDDLEWARE'
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Quan trọng: Nằm ngay sau SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware', # QUAN TRỌNG: Để hiển thị CSS
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware', # Thêm dòng này nếu dùng allauth
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'webbanhang.urls'
@@ -65,7 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'app.context_processors.cart_context', # Context cho giỏ hàng
+                'app.context_processors.cart_context', # Context giỏ hàng
             ],
         },
     },
@@ -74,6 +76,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'webbanhang.wsgi.application'
 
 # Database
+# Lưu ý: Thông tin này đang lộ mật khẩu, nên bảo mật kỹ hơn trong tương lai
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -112,8 +115,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -121,25 +123,27 @@ STATICFILES_DIRS = [
 # Cấu hình Cloudinary
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dhtqwmp9f', 
-    'API_KEY': '445756636998613',    
-    'API_SECRET': 'L-4Ds71mVU6SL9y3z1-_Od1_Zto'  
+    'API_KEY': '445756636998613',     
+    'API_SECRET': 'L-4Ds71mVU6SL9y3z1-_Od1_Zto'   
 }
 
 # Media settings
 MEDIA_URL = '/media/'
 
-# STORAGES configuration
+# CẤU HÌNH LƯU TRỮ (QUAN TRỌNG NHẤT)
+# Đây là cấu hình chuẩn cho Django 4.2 trở lên để xử lý cả Static và Media
 STORAGES = {
     "default": {
+        # Dùng Cloudinary để lưu ảnh upload
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.StaticFilesStorage",
+        # Dùng WhiteNoise để nén và phục vụ file CSS/JS
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Fix lỗi WhiteNoise nếu thiếu file trong manifest
 WHITENOISE_MANIFEST_STRICT = False
 
-
-STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
