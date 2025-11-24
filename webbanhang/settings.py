@@ -134,12 +134,11 @@ MEDIA_URL = '/media/'
 # Đây là cấu hình chuẩn cho Django 4.2 trở lên để xử lý cả Static và Media
 STORAGES = {
     "default": {
-        # Dùng Cloudinary để lưu ảnh upload
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Dùng WhiteNoise để nén và phục vụ file CSS/JS
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Đã xóa chữ "Manifest" đi để không bị lỗi thiếu file .map
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
