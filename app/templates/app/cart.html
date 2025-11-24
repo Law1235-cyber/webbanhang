@@ -43,7 +43,7 @@
                     
                     <div class="col-3 col-md-2 d-flex justify-content-center">
                         <img class="img-fluid rounded" 
-                            src="{{ item.product.imageURL }}" 
+                            src="{{ item.product.imageURL }}"
                             alt="{{ item.product.name }}" 
                             style="width: 70px; height: 70px; object-fit: cover;">
                     </div>
@@ -72,10 +72,10 @@
 
                             <div class="d-flex flex-column" style="gap: 3px;">
                                 <img class="chg-quantity update-cart-btn" data-product="{{ item.product.id }}" data-action="add" 
-                                    src="{% static 'app/images/arrow-up.png' %}" style="width: 15px; cursor: pointer;">
+                                    src="{% static 'img/arrow-up.png' %}" style="width: 15px; cursor: pointer;">
                     
                                 <img class="chg-quantity update-cart-btn" data-product="{{ item.product.id }}" data-action="remove" 
-                                    src="{% static 'app/images/arrow-down.png' %}" style="width: 15px; cursor: pointer;">
+                                    src="{% static 'img/arrow-down.png' %}" style="width: 15px; cursor: pointer;">
                                     <small><a href="#" class="text-danger update-cart-btn " data-product="{{ item.product.id }}" data-action="delete">Xóa</a></small>
                             </div>
                         </div>
