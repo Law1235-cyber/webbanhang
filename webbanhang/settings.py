@@ -9,11 +9,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Ưu tiên lấy từ biến môi trường trên Render, nếu không có thì dùng key mặc định (để chạy local)
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-#&t(x&a6$w9o*q#n2so6(niikk5__7dmdpfj7g6&5k%_7*3af&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Tự động False trên Render, True trên máy local
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['webbanhang1.onrender.com', 'localhost', '127.0.0.1']
@@ -22,25 +20,31 @@ LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 INSTALLED_APPS = [
-    'jazzmin',  # Giao diện Admin đẹp (phải đặt đầu tiên)
-    'cloudinary_storage', # Quản lý lưu trữ ảnh
-    'cloudinary',         # Thư viện Cloudinary
-    
+    # 1. Giao diện Admin (Phải đặt đầu tiên để override template gốc)
+    'jazzmin',
+
+    # 2. Các ứng dụng lõi của Django (Nên load trước các thư viện bên thứ 3)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles', # <--- Quan trọng: Phải đứng trước Cloudinary
 
-    'app', # Tên app của bạn
+    # 3. Các thư viện bên thứ 3 (Di chuyển Cloudinary xuống đây)
+    'cloudinary_storage',
+    'cloudinary',
     'widget_tweaks',
     'django_cleanup.apps.CleanupConfig',
-    'rest_framework', 
-    'rest_framework_simplejwt', 
-    'allauth', 
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'allauth',
     'allauth.account',
     'crispy_forms',
+    # 'crispy_bootstrap5', # (Nếu bạn có cài gói này thì nên thêm vào đây)
+
+    # 4. App của dự án
+    'app',
 ]
 
 MIDDLEWARE = [
@@ -76,12 +80,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'webbanhang.wsgi.application'
 
 # Database
-# Lưu ý: Thông tin này đang lộ mật khẩu, nên bảo mật kỹ hơn trong tương lai
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres.vnymenleyclysclxnljj', 
+        'USER': 'postgres.vnymenleyclysclxnljj',
         'PASSWORD': 'sueu5svcnLBSSiA0',
         'HOST': 'aws-1-ap-southeast-1.pooler.supabase.com',
         'PORT': '6543',
@@ -122,23 +125,20 @@ STATICFILES_DIRS = [
 
 # Cấu hình Cloudinary
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dhtqwmp9f', 
-    'API_KEY': '445756636998613',     
-    'API_SECRET': 'L-4Ds71mVU6SL9y3z1-_Od1_Zto'   
+    'CLOUD_NAME': 'dhtqwmp9f',
+    'API_KEY': '445756636998613',
+    'API_SECRET': 'L-4Ds71mVU6SL9y3z1-_Od1_Zto'
 }
 
 # Media settings
 MEDIA_URL = '/media/'
 
-# CẤU HÌNH LƯU TRỮ (QUAN TRỌNG NHẤT)
-# Đây là cấu hình chuẩn cho Django 4.2 trở lên để xử lý cả Static và Media
+# CẤU HÌNH LƯU TRỮ
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Đã chuyển sang chế độ cơ bản: KHÔNG NÉN, KHÔNG MANIFEST
-        # Để tránh lỗi FileNotFoundError khi deploy
         "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
@@ -147,4 +147,6 @@ STORAGES = {
 WHITENOISE_MANIFEST_STRICT = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Fix lỗi AttributeError cho thư viện cũ
 STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
