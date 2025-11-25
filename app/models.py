@@ -117,3 +117,9 @@ class Banner(models.Model):
     description = models.TextField(null=True, blank=True)
     def __str__(self):
         return self.name or 'N/A'
+
+class logo(models.Model):
+    image = models.ImageField(null=True, blank=True, upload_to='logo/')
+
+    def __str__(self):
+        return self.image or 'N/A'

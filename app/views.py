@@ -7,7 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 import json
-
+import datetime
 # Giả định form đăng ký đã được import từ app/forms.py
 from .models import Customer, Order, OrderItem, Product, ShippingAddress, Banner
 from .forms import createUserForm
@@ -179,3 +179,5 @@ def updateItem(request):
     except Exception as e:
         print(f"Error in updateItem: {e}")
         return JsonResponse(f'Error: {e}', status=400, safe=False)
+    
+    
