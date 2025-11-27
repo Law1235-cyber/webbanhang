@@ -60,7 +60,10 @@
     <span class="visually-hidden">Next</span>
   </button>
 </div>
-{% endblock banner-slider %} {% block main-content %}
+{% endblock banner-slider %} 
+
+
+{% block main-content %}
 
 <style>
   .product-card {
@@ -153,7 +156,8 @@
   </h3>
 
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
-    {% for product in products %}
+    <!-- {% for product in products[:10]%} -->
+    {% for product in products limit: 10 %}
     <div class="col">
       <div class="card h-100 shadow-sm product-card">
         <a

@@ -1,9 +1,10 @@
-from .models import Cart
+from .models import Cart, logo
 
 def cart_context(request):
     """
-    Thêm số lượng mặt hàng trong giỏ hàng vào context của tất cả các template.
+    Thêm số lượng mặt hàng trong giỏ hàng và logo vào context của tất cả các template.
     - cartItems: Số lượng mặt hàng trong giỏ hàng (sử dụng model Cart).
+    - logo: Đối tượng logo để hiển thị trên trang.
     """
     cartItems = 0
     if request.user.is_authenticated:
@@ -14,5 +15,11 @@ def cart_context(request):
         except Cart.DoesNotExist:
             # Nếu người dùng đã đăng nhập nhưng chưa có giỏ hàng, cartItems vẫn là 0
             cartItems = 0
-            
-    return {'cartItems': cartItems}
+    
+    # Lấy tất cả các đối tượng logo
+    logos = logo.objects.all()
+    
+    return {
+        'cartItems': cartItems,
+        'logo': logos
+    }
