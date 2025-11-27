@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 import json # Đảm bảo đã có import json
@@ -6,13 +5,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import login as auth_login, logout
+from django.contrib.auth.decorators import login_required
 import json
 from .models import Product, Comment
 from .forms import CommentForm
 
 # Import các Models và Forms
-from .models import Customer, Order, OrderItem, Product, Banner, Category, Cart, CartItem 
+from .models import Customer, Order, OrderItem, Product, Banner, Category, Cart, CartItem, logo 
 from .forms import CommentForm, createUserForm
 
 # --- 1. TRANG CHỦ ---
@@ -41,18 +41,28 @@ def search(request):
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     
+    # Kiểm tra xem người dùng đã mua sản phẩm này chưa
+    has_purchased = False
+    if request.user.is_authenticated:
+        has_purchased = Order.objects.filter(
+            customer=request.user, 
+            status__in=['Paid', 'Completed'], 
+            items__product_original=product
+        ).exists()
+
     # Xử lý khi người dùng gửi bình luận
     if request.method == 'POST':
-        if request.user.is_authenticated:
+        if has_purchased: # Chỉ cho phép bình luận nếu đã mua
             form = CommentForm(request.POST)
             if form.is_valid():
                 comment = form.save(commit=False)
                 comment.product = product
                 comment.user = request.user
                 comment.save()
-                return redirect('product_detail', pk=pk) # Load lại trang để hiện bình luận mới
+                return redirect('product_detail', pk=pk)
         else:
-            return redirect('login')
+            # Nếu chưa mua mà cố tình POST, bỏ qua và load lại trang
+            return redirect('product_detail', pk=pk)
 
     else:
         form = CommentForm()
@@ -63,7 +73,8 @@ def product_detail(request, pk):
     context = {
         'product': product,
         'comments': comments,
-        'form': form
+        'form': form,
+        'has_purchased': has_purchased # Truyền biến này cho template
     }
     return render(request, 'app/product_detail.html', context)
 
@@ -97,6 +108,25 @@ def login(request):
         
     context = {'form': form}
     return render(request, 'app/login.html', context)
+
+# --- VIEW TRANG CÁ NHÂN (PROFILE) ---
+@login_required(login_url='login')
+def profile(request):
+    customer = get_object_or_404(Customer, user=request.user)
+    
+    # Lấy các đơn hàng đã hoàn thành (Lịch sử)
+    past_orders = Order.objects.filter(customer=request.user, complete=True).order_by('-date_ordered')
+    
+    # Lấy các đơn hàng chưa hoàn thành (Hiện tại)
+    current_orders = Order.objects.filter(customer=request.user, complete=False).order_by('-date_ordered')
+
+    context = {
+        'customer': customer, 
+        'past_orders': past_orders,
+        'current_orders': current_orders
+    }
+    return render(request, 'app/profile.html', context)
+
 
 # --- 6. GIỎ HÀNG (CART) - ĐÃ SỬA LỖI LOGIC CART/ORDER ---
 def cart(request):
@@ -143,6 +173,14 @@ def checkout(request):
     order_info = {'get_cart_total': cart.get_cart_total, 'get_cart_items': cart.get_cart_items, 'id': 0}
     cartItems = cart.get_cart_items
     
+    shipping_address = None
+    try:
+        # Lấy địa chỉ giao hàng gần nhất từ model ShippingAddress
+        shipping_address = ShippingAddress.objects.filter(customer=customer).order_by('-date_added').first()
+    except NameError:
+        # Xử lý nếu model ShippingAddress chưa được định nghĩa
+        pass
+        
     # 2. Xử lý khi người dùng bấm nút "Tiếp tục" (POST request)
     if request.method == 'POST':
         # Lấy thông tin từ form
@@ -157,6 +195,7 @@ def checkout(request):
         # --- A. TẠO ORDER MỚI (SNAPSHOT) ---
         new_order = Order.objects.create(
             customer=request.user, # Khóa ngoại đến User
+            complete=False, # Explicitly set complete to False on creation
             total_amount=cart.get_cart_total, # Tổng tiền chốt đơn
             shipping_name=name,
             shipping_mobile=mobile,
@@ -180,7 +219,7 @@ def checkout(request):
             # item.product.save()
 
         # --- C. XÓA CART CŨ SAU KHI TẠO ĐƠN THÀNH CÔNG ---
-        cart.cartitem_set.all().delete()
+        cart.delete()
         
         # --- D. ĐIỀU HƯỚNG THEO PHƯƠNG THỨC THANH TOÁN ---
         if payment_method == 'Online':
@@ -197,16 +236,17 @@ def checkout(request):
         'order': order_info, 
         'cartItems': cartItems, 
         'customer': customer,
+        'shipping_address': shipping_address
     }
     return render(request, 'app/checkout.html', context)
 
 # --- 8. CẬP NHẬT GIỎ HÀNG (AJAX) - ĐÃ SỬA LỖI LOGIC CART/ORDER ---
 def updateItem(request):
     if request.method != 'POST':
-        return JsonResponse('Only POST requests allowed', status=405, safe=False)
+        return JsonResponse({'error': 'Only POST requests allowed'}, status=405)
         
     if not request.user.is_authenticated:
-        return JsonResponse('User is not authenticated', safe=False)
+        return JsonResponse({'error': 'User is not authenticated'}, status=401)
 
     try:
         data = json.loads(request.body)
@@ -215,7 +255,7 @@ def updateItem(request):
         
         product = Product.objects.get(id=productId)
         
-        # 1. Lấy Giỏ hàng của User hiện tại (Đảm bảo tính cá nhân hóa)
+        # 1. Lấy Giỏ hàng của User hiện tại
         cart, created = Cart.objects.get_or_create(user=request.user) 
         
         # 2. Lấy hoặc tạo CartItem trong Cart đó
@@ -223,28 +263,28 @@ def updateItem(request):
         
         # Logic cập nhật số lượng
         if action == 'add':
-            # Nếu item chưa có trong giỏ, 'created' sẽ là True, và số lượng mặc định là 1.
-            # Nếu đã có, 'created' là False, chúng ta sẽ cộng thêm 1.
-            if not created:
+            if created:
+                cart_item.quantity = 1
+            else:
                 cart_item.quantity += 1
         elif action == 'remove':
             cart_item.quantity -= 1
         elif action == 'delete':
-            cart_item.quantity = 0 # Đặt về 0 để xóa
+            cart_item.quantity = 0
             
         cart_item.save()
 
         if cart_item.quantity <= 0:
-            cart_item.delete() # Xóa CartItem khỏi Database
+            cart_item.delete()
             
-        # Trả về tổng số lượng sản phẩm mới trong giỏ hàng
+        # Trả về tổng số lượng sản phẩm trong giỏ hàng
         total_items = cart.get_cart_items
         return JsonResponse({'message': 'Item was updated', 'total_items': total_items})
         
     except Product.DoesNotExist:
-        return JsonResponse('Product not found', status=404, safe=False)
+        return JsonResponse({'error': 'Product not found'}, status=404)
     except Exception as e:
-        return JsonResponse(f'Error: {e}', status=400, safe=False)
+        return JsonResponse({'error': str(e)}, status=400)
 
 # --- 9. TRANG HIỂN THỊ MÃ QR ---
 def payment_qr(request, order_id):
@@ -252,7 +292,7 @@ def payment_qr(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     
     # Nếu đơn hàng đã hoàn tất, không cho thanh toán lại
-    if order.status == 'Completed':
+    if order.complete:
         return redirect('payment_success')
         
     context = {'order': order}
@@ -262,7 +302,7 @@ def payment_qr(request, order_id):
 def check_payment_status(request, order_id):
     try:
         order = Order.objects.get(id=order_id)
-        return JsonResponse({'complete': order.status == 'Completed'})
+        return JsonResponse({'complete': order.complete})
     except Order.DoesNotExist:
         return JsonResponse({'complete': False})
 
@@ -302,9 +342,11 @@ def sepay_webhook(request):
 
             if order:
                 # Kiểm tra số tiền (phải lớn hơn hoặc bằng tổng tiền đơn hàng)
-                cart_total = float(order.total_amount)
+                # SỬA LỖI: Dùng order.total_amount đã lưu thay vì get_cart_total
+                order_total = float(order.total_amount)
                 
-                if transferAmount >= cart_total:
+                if transferAmount >= order_total:
+                    order.complete = True
                     order.status = 'Paid'
                     order.transaction_id = transaction_id
                     order.payment_method = 'Online' # Cập nhật phương thức thanh toán
@@ -362,26 +404,3 @@ def product_tong(request):
     # Truyền thêm 'categories' vào context
     context = {'page_obj': page_obj, 'categories': categories} 
     return render(request, 'app/product.html', context)
-
-
-# --- 14. TRANG HỒ SƠ KHÁCH HÀNG (PROFILE) ---
-@login_required
-def profile(request):
-    # Lấy thông tin Customer liên quan đến User đang đăng nhập
-    customer = get_object_or_404(Customer, user=request.user)
-    
-    # Lấy tất cả đơn hàng của user, sắp xếp theo ngày tạo mới nhất
-    # Sử dụng prefetch_related để tối ưu, lấy tất cả OrderItem cùng lúc
-    orders = Order.objects.filter(customer=request.user).prefetch_related('items', 'items__product_original').order_by('-date_ordered')
-    
-    # Phân loại đơn hàng
-    current_orders = [order for order in orders if order.status in ['Pending', 'Shipping']]
-    past_orders = [order for order in orders if order.status in ['Paid', 'Completed']]
-    
-    context = {
-        'customer': customer,
-        'current_orders': current_orders,
-        'past_orders': past_orders,
-    }
-    return render(request, 'app/profile.html', context)
-

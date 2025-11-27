@@ -86,6 +86,7 @@ class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     date_ordered = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+    complete = models.BooleanField(default=False)
     
     # THÔNG TIN GIAO HÀNG SNAPSHOT (LƯU TRỮ LỊCH SỬ)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Tổng tiền chốt đơn")

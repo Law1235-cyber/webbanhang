@@ -190,23 +190,29 @@
             <div class="card-body">
 
                 {% if user.is_authenticated %}
-                <form method="POST" class="mb-4">
-                    {% csrf_token %}
-                    <div class="d-flex">
-                        <div class="me-3">
-                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random"
-                                class="rounded-circle" width="40" height="40">
-                        </div>
-                        <div class="flex-grow-1">
-                            {{ form.content }}
-                            <div class="text-end mt-2">
-                                <button type="submit" class="btn btn-primary btn-sm px-4">
-                                    <i class="fas fa-paper-plane"></i> Gửi bình luận
-                                </button>
+                    {% if has_purchased %}
+                        <form method="POST" class="mb-4">
+                            {% csrf_token %}
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random"
+                                        class="rounded-circle" width="40" height="40">
+                                </div>
+                                <div class="flex-grow-1">
+                                    {{ form.content }}
+                                    <div class="text-end mt-2">
+                                        <button type="submit" class="btn btn-primary btn-sm px-4">
+                                            <i class="fas fa-paper-plane"></i> Gửi bình luận
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-light border text-center mb-4">
+                            Bạn cần mua sản phẩm này để có thể viết bình luận.
                         </div>
-                    </div>
-                </form>
+                    {% endif %}
                 {% else %}
                 <div class="alert alert-light border text-center mb-4">
                     Vui lòng <a href="{% url 'login' %}" class="fw-bold text-decoration-none">Đăng nhập</a> để viết bình

@@ -154,7 +154,7 @@
             <div class="payment-info">
                 <p><strong>Mã đơn hàng:</strong> #{{ order.id }}</p>
                 <p><strong>Tổng tiền:</strong> <span class="text-danger fw-bold fs-5">
-                        {{ order.get_cart_total|floatformat:0 }} đ     </span></p>
+                        {{ order.total_amount|floatformat:0 }} đ     </span></p>
                 {% if user.is_authenticated %}
                 <div style="border-top: 1px solid #ddd; margin-top: 10px; padding-top: 10px;">
                     <p><strong>Khách hàng:</strong> {{ user.username }}</p>
@@ -227,7 +227,7 @@
     // ============================================================
 
     const orderId = "{{ order.id }}";
-    const amount = "{{ order.get_cart_total_int }}";
+    const amount = "{{ order.total_amount|floatformat:0 }}";
 
     // 1. Hiển thị thông tin lên giao diện
     document.getElementById('bank-name').innerText = NGAN_HANG;
