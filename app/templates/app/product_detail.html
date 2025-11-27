@@ -1,62 +1,268 @@
 {% extends 'app/base.html' %}
 {% load static %}
-{% load widget_tweaks %}
 
 {% block product_detail-content %}
+<style>
+    .product-image-box {
+        border: 1px solid #eee;
+        border-radius: 15px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #fff;
+        padding: 20px;
+    }
+
+    .product-detail-img {
+        max-height: 400px;
+        width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .product-price {
+        font-size: 2rem;
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .btn-buy-now {
+        background: #dc3545;
+        color: white;
+        border: none;
+    }
+
+    .btn-buy-now:hover {
+        background: #bb2d3b;
+        color: white;
+    }
+
+    /* Style bảng thông số */
+    .tech-specs-table td {
+        padding: 10px;
+        vertical-align: middle;
+    }
+
+    .tech-specs-table tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+    .spec-label {
+        font-weight: 600;
+        width: 35%;
+        color: #555;
+    }
+</style>
+
 <div class="container my-5">
-    
-    <a href="{% url 'home' %}" class="btn btn-outline-secondary mb-4">
-        &#x2190; Quay lại Trang chủ
-    </a>
+
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'product_tong' %}" class="text-decoration-none">Sản phẩm</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
 
     <div class="row">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-            <div class="card shadow-sm">
-                <img src="{{ product.imageURL }}" class="card-img-top p-3" 
-                     alt="{{ product.name }}" style="max-height: 500px; object-fit: contain;">
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <div class="product-image-box shadow-sm mb-4">
+                <img src="{{ product.imageURL }}" class="product-detail-img animate__animated animate__fadeIn"
+                    alt="{{ product.name }}">
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold text-uppercase py-3">
+                    Mô tả sản phẩm
+                </div>
+                <div class="card-body">
+                    <p class="text-muted" style="line-height: 1.8; white-space: pre-line;">
+                        {{ product.description|default:"Đang cập nhật nội dung chi tiết cho sản phẩm này." }}
+                    </p>
+                </div>
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="card shadow-sm p-4 h-100">
-                
-                <h1 class="mb-3">{{ product.name }}</h1>
-                
-                <h2 class="text-danger mb-4">
-                    ${{ product.price|floatformat:2 }}
-                </h2>
+        <div class="col-lg-5">
+            <div class="card border-0 h-100">
+                <div class="card-body p-0">
 
-                <div class="mb-4 border-top pt-3">
-                    <h5 class="fw-bold">Mô tả sản phẩm:</h5>
-                    <p class="text-muted">
-                        {{ product.description }}. 
-                    </p>
-                    <p>Kho hàng còn: {{ product.quantity }} Máy</p>
-                </div>
-                
-                <div class="mt-auto pt-3 border-top">
-                    <form id="form-add-to-cart">
-                        <div class="mb-3 d-flex align-items-center">
-                            <label for="quantity" class="form-label me-3 fw-bold mb-0">Số lượng:</label>
-                            <input type="number" id="quantity" value="1" min="1" max="{{ product.quantity|default:10 }}" 
-                                   class="form-control" style="width: 80px;">
+                    <h2 class="fw-bold mb-2 text-dark">{{ product.name }}</h2>
+
+                    {% if product.category %}
+                    <span class="badge bg-info text-dark mb-3">{{ product.category.name }}</span>
+                    {% endif %}
+
+                    <div class="mb-4 border-bottom pb-3">
+                        <span class="product-price">{{ product.price|floatformat:0 }}₫</span>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light fw-bold">
+                            <i class="fas fa-laptop me-2"></i>Cấu hình chi tiết
                         </div>
+                        <div class="card-body p-0">
+                            <table class="table table-borderless tech-specs-table mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="spec-label">CPU</td>
+                                        <td>{{ product.cpu|default:"Đang cập nhật" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="spec-label">RAM</td>
+                                        <td>{{ product.ram|default:"Đang cập nhật" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="spec-label">Ổ cứng</td>
+                                        <td>{{ product.storage|default:"Đang cập nhật" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="spec-label">Màn hình</td>
+                                        <td>{{ product.screen|default:"Đang cập nhật" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="spec-label">VGA</td>
+                                        <td>{{ product.vga|default:"Onboard" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="spec-label">Hệ điều hành</td>
+                                        <td>{{ product.os|default:"Windows 10/11" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="spec-label">Trọng lượng</td>
+                                        <td>{{ product.weight|default:"--" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                        <button type="button" 
-                                data-product="{{ product.id }}" 
-                                data-action="add" 
-                                class="btn btn-primary add-btn update-cart-btn btn-lg w-100">
-                            🛒 Thêm vào giỏ hàng
-                        </button>
-                        <a href="{% url 'cart' %}" class="btn btn-success buy-now-btn btn-lg w-100 mt-3">
-                            💵 Mua ngay
-                        </a>
-                        
-                    </form>
+                    <div class="mb-4 d-flex align-items-center">
+                        <strong class="me-2">Tình trạng:</strong>
+                        {% if product.quantity > 0 %}
+                        <span class="text-success fw-bold"><i class="fas fa-check-circle"></i> Còn hàng</span>
+                        {% else %}
+                        <span class="text-danger fw-bold"><i class="fas fa-times-circle"></i> Hết hàng</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button data-product="{{ product.id }}" data-action="add"
+                                    class="btn btn-outline-primary w-100 py-3 fw-bold update-cart-btn">
+                                    <i class="fas fa-cart-plus me-2"></i> THÊM VÀO GIỎ
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button id="buy-now-btn" data-product="{{ product.id }}" data-action="add"
+                                    class="btn btn-buy-now w-100 py-3 fw-bold">
+                                    <i class="fas fa-money-bill-wave me-2"></i> MUA NGAY
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <ul class="list-unstyled mb-0 small text-secondary">
+                            <li class="mb-2"><i class="fas fa-shield-alt text-success me-2"></i>Bảo hành chính hãng 12
+                                tháng</li>
+                            <li class="mb-2"><i class="fas fa-sync-alt text-success me-2"></i>1 đổi 1 trong 30 ngày nếu
+                                lỗi</li>
+                            <li><i class="fas fa-truck text-success me-2"></i>Miễn phí giao hàng toàn quốc</li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="row mt-5">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-bold py-3">
+                <i class="fas fa-comments me-2"></i> Đánh giá & Bình luận
+            </div>
+            <div class="card-body">
+
+                {% if user.is_authenticated %}
+                <form method="POST" class="mb-4">
+                    {% csrf_token %}
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random"
+                                class="rounded-circle" width="40" height="40">
+                        </div>
+                        <div class="flex-grow-1">
+                            {{ form.content }}
+                            <div class="text-end mt-2">
+                                <button type="submit" class="btn btn-primary btn-sm px-4">
+                                    <i class="fas fa-paper-plane"></i> Gửi bình luận
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-light border text-center mb-4">
+                    Vui lòng <a href="{% url 'login' %}" class="fw-bold text-decoration-none">Đăng nhập</a> để viết bình
+                    luận.
+                </div>
+                {% endif %}
+
+                <hr>
+
+                <div class="comment-list">
+                    {% for comment in comments %}
+                    <div class="d-flex mb-3">
+                        <div class="me-3">
+                            <img src="https://ui-avatars.com/api/?name={{ comment.user.username }}&background=random"
+                                class="rounded-circle" width="40" height="40">
+                        </div>
+                        <div>
+                            <div class="bg-light p-3 rounded-3">
+                                <h6 class="fw-bold mb-1">{{ comment.user.username }}</h6>
+                                <p class="mb-0 text-secondary" style="font-size: 0.95rem;">
+                                    {{ comment.content }}
+                                </p>
+                            </div>
+                            <small class="text-muted ms-2" style="font-size: 0.8rem;">
+                                {{ comment.date_added|date:"H:i - d/m/Y" }}
+                            </small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted py-3">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    if (buyNowBtn) {
+        buyNowBtn.addEventListener('click', function () {
+            const productId = this.dataset.product;
+            const action = this.dataset.action;
+
+            if (user === 'AnonymousUser') {
+                window.location.href = "{% url 'login' %}";
+                return;
+            }
+            updateUserOrder(productId, action);
+            setTimeout(() => {
+                window.location.href = "{% url 'cart' %}";
+            }, 500);
+        });
+    }
+</script>
 
 {% endblock product_detail-content %}

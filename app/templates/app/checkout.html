@@ -1,117 +1,240 @@
 {% extends 'app/base.html' %}
 {% load static %}
+
 {% block content_checkout %}
-    <div class="row g-4" style="margin-top: 2px;">
-        <div class="col-lg-6">
-            <div class="card shadow-sm p-4 h-100">
-                <a class="btn btn-outline-secondary mb-3 align-self-start" href="{% url 'cart' %}">&#x2190; Quay lại Giỏ hàng</a>
-                <hr>
-                <h4 class="mb-3">Tóm tắt Đơn hàng</h4>
-                <hr>
 
-                {% for item in items %}
-                <div class="d-flex align-items-center border-bottom pb-3 mb-3">
-                    <div class="flex-shrink-0 me-3">
-                        <img class="img-fluid rounded"
-                             src="{{ item.product.imageURL }}"
-                             alt="{{ item.product.name }}"
-                             style="width: 70px; height: 70px; object-fit: cover;">
+<style>
+    .checkout-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        padding-bottom: 50px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        border-color: #86b7fe;
+    }
+
+    /* Style cho ô chọn phương thức thanh toán */
+    .payment-option {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .payment-option:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+
+    .payment-option .form-check-input {
+        cursor: pointer;
+        margin-top: 0.3em;
+    }
+
+    /* Ghim phần tóm tắt đơn hàng khi cuộn */
+    .order-summary {
+        position: sticky;
+        top: 90px;
+    }
+
+    .product-thumb {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+</style>
+
+<div class="checkout-container pt-5">
+    <div class="container">
+        <div class="py-3 text-center">
+            <h2 class="fw-bold text-primary">Thanh toán</h2>
+            <p class="lead text-muted">Vui lòng kiểm tra đơn hàng và điền thông tin.</p>
+        </div>
+
+        <div class="row g-5">
+
+            <div class="col-md-5 col-lg-4">
+                <div class="card border-0 shadow-sm order-summary">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-secondary">
+                            Đơn hàng của bạn
+                            <span class="badge bg-primary rounded-pill float-end">{{ order.get_cart_items }}</span>
+                        </h5>
                     </div>
-                    <div class="flex-grow-1">
-                        <p class="mb-0 fw-bold">{{ item.product.name }}</p>
+                    <ul class="list-group list-group-flush scrollable-cart"
+                        style="max-height: 400px; overflow-y: auto;">
+                        {% for item in items %}
+                        <li class="list-group-item d-flex align-items-center justify-content-between lh-sm py-3">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ item.product.imageURL }}" alt="{{ item.product.name }}"
+                                    class="product-thumb me-3">
+                                <div>
+                                    <h6 class="my-0 text-truncate" style="max-width: 150px;">{{ item.product.name }}
+                                    </h6>
+                                    <small class="text-muted">Số lượng: {{ item.quantity }}</small>
+                                </div>
+                            </div>
+                            <span class="text-muted fw-bold">${{ item.get_total|floatformat:2 }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4 text-muted">Giỏ hàng trống</li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="card-footer bg-white py-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small>Tạm tính</small>
+                            <small>${{ order.get_cart_total|floatformat:2 }}</small>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Tổng cộng (USD)</span>
+                            <strong class="text-danger fs-5">${{ order.get_cart_total|floatformat:2 }}</strong>
+                        </div>
                     </div>
-                    <div class="text-end">
-                        <p class="mb-0 fw-bold">${{ item.product.price|floatformat:2 }}</p>
-                        <p class="mb-0 text-muted">x{{ item.quantity }}</p>
-                        <small class="text-danger">Total: ${{ item.get_total|floatformat:2 }}</small>
+
+                    <div class="p-3 border-top">
+                        <a href="{% url 'cart' %}" class="text-decoration-none text-secondary small">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại giỏ hàng
+                        </a>
                     </div>
                 </div>
-                {% empty %}
-                <p class="text-center text-muted">Giỏ hàng trống.</p>
-                {% endfor %}
+            </div>
 
-                <div class="mt-auto pt-3 border-top">
-                    <h5 class="d-flex justify-content-between">
-                        <span>Items:</span> <strong>{{ order.get_cart_items }}</strong>
-                    </h5>
-                    <h4 class="d-flex justify-content-between text-danger">
-                        <span>Total:</span> <strong>${{ order.get_cart_total|floatformat:2 }}</strong>
-                    </h4>
+            <div class="col-md-7 col-lg-8">
+                <div class="card border-0 shadow-sm p-4">
+                    <form id="form" method="POST" action="{% url 'checkout' %}" class="needs-validation">
+                        {% csrf_token %}
+
+                        <h4 class="mb-3 fw-bold text-secondary"><i class="fas fa-user-circle me-2"></i>Thông tin khách
+                            hàng</h4>
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label for="firstName" class="form-label">Họ và Tên</label>
+                                <input type="text" class="form-control" name="name" placeholder="VD: Nguyễn Văn A"
+                                    value="{% if customer %}{{ customer.name }}{% endif %}" required>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label for="email" class="form-label">Email <span class="text-muted">(Bắt
+                                        buộc)</span></label>
+                                <input type="email" class="form-control" name="email" placeholder="you@example.com"
+                                    value="{% if customer %}{{ customer.email }}{% endif %}" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h4 class="mb-3 fw-bold text-secondary"><i class="fas fa-shipping-fast me-2"></i>Địa chỉ giao
+                            hàng</h4>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="address" class="form-label">Địa chỉ chi tiết</label>
+                                <input type="text" class="form-control" name="address"
+                                    placeholder="Số nhà, tên đường..."
+                                    value="{% if shipping_address %}{{ shipping_address.address }}{% endif %}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="country" class="form-label">Thành phố</label>
+                                <input type="text" class="form-control" name="city" placeholder="Hà Nội..."
+                                    value="{% if shipping_address %}{{ shipping_address.city }}{% endif %}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="state" class="form-label">Tỉnh/Quận/Huyện</label>
+                                <input type="text" class="form-control" name="state" placeholder="Quận Cầu Giấy..."
+                                    value="{% if shipping_address %}{{ shipping_address.state }}{% endif %}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="zip" class="form-label">Quốc gia</label>
+                                <input type="text" class="form-control" name="country" placeholder="Việt Nam"
+                                    value="{% if shipping_address %}{{ shipping_address.quocgia }}{% endif %}" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="mobile" class="form-label">Số điện thoại</label>
+                                <input type="text" class="form-control" name="mobile" placeholder="09xxxxxxxx"
+                                    value="{% if shipping_address %}{{ shipping_address.mobile }}{% endif %}" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h4 class="mb-3 fw-bold text-secondary"><i class="fas fa-credit-card me-2"></i>Thanh toán</h4>
+
+                        <div class="my-3">
+                            <label class="payment-option d-flex align-items-center w-100">
+                                <div class="form-check w-100">
+                                    <input id="cod" name="paymentMethod" type="radio" class="form-check-input"
+                                        value="COD" checked>
+                                    <label class="form-check-label fw-bold ms-2" for="cod">
+                                        Thanh toán khi nhận hàng (COD)
+                                    </label>
+                                    <div class="text-muted small ms-4">Thanh toán tiền mặt cho shipper khi nhận hàng.
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="payment-option d-flex align-items-center w-100">
+                                <div class="form-check w-100">
+                                    <input id="online" name="paymentMethod" type="radio" class="form-check-input"
+                                        value="Online">
+                                    <label class="form-check-label fw-bold ms-2 text-primary" for="online">
+                                        Chuyển khoản QR Code
+                                    </label>
+                                    <div class="text-muted small ms-4">Quét mã QR ngân hàng để thanh toán nhanh.</div>
+                                </div>
+                                <i class="fas fa-qrcode fa-2x text-muted ms-auto"></i>
+                            </label>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <button class="w-100 btn btn-success btn-lg fw-bold py-3 text-uppercase" type="submit"
+                            id="form-button">
+                            Xác nhận đặt hàng
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-6">
-            <div class="card shadow-sm p-4 h-100" id="form-wrapper">
-                <form id="form">
-                    <h4 class="mb-4 border-bottom pb-2">Thông tin Khách hàng</h4>
-                    
-                    <div id="user-info" class="mb-4">
-                        <div class="mb-3">
-                            <input required class="form-control" type="text" name="name" placeholder="Họ tên.." 
-                                value="{% if customer %}{{ customer.name }}{% endif %}">
-                        </div>
-                        <div class="mb-3">
-                            <input required class="form-control" type="email" name="email" placeholder="Email.." 
-                                value="{% if customer %}{{ customer.email }}{% endif %}">
-                        </div>
-                    </div>
-                    
-                    <div id="shipping-info">
-                        <hr>
-                        <h4 class="mb-3 pt-2">Thông tin Giao hàng</h4>
-                        <hr>
-                        
-                        <div class="mb-3">
-                            <input class="form-control" type="text" name="address" placeholder="Địa chỉ.."
-                                value="{% if shipping_address %}{{ shipping_address.address }}{% endif %}">
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input class="form-control" type="text" name="city" placeholder="Thành phố.."
-                                        value="{% if shipping_address %}{{ shipping_address.city }}{% endif %}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input class="form-control" type="text" name="state" placeholder="Tỉnh"
-                                        value="{% if shipping_address %}{{ shipping_address.state }}{% endif %}">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input class="form-control" type="text" name="mobile" placeholder="Số điện thoại.."
-                                        value="{% if shipping_address %}{{ shipping_address.mobile }}{% endif %}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input class="form-control" type="text" name="country" placeholder="Quốc gia.."
-                                        value="{% if shipping_address %}{{ shipping_address.quocgia }}{% endif %}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-                    <h5 class="mb-3 pt-2">phương thức thanh toán:</h5>
-                    <div class="d-flex mb-3">
-                        <div class="form-check me-4">
-                            <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="COD" checked>
-                            <label class="form-check-label" for="cod">
-                                Thanh toán khi nhận hàng (COD)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="Online">
-                            <label class="form-check-label" for="online">
-                                Thanh toán QR
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <input id="form-button" class="btn btn-success w-100" type="submit" value="Tiếp tục">
-                </form>
-            </div>
-            
-        </div>
-
     </div>
+</div>
+
+<script>
+    const paymentOptions = document.querySelectorAll('input[name="paymentMethod"]');
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function () {
+            document.querySelectorAll('.payment-option').forEach(el => {
+                el.style.borderColor = '#dee2e6';
+                el.style.backgroundColor = '#fff';
+            });
+            if (this.checked) {
+                this.closest('.payment-option').style.borderColor = '#0d6efd';
+                this.closest('.payment-option').style.backgroundColor = '#f0f8ff';
+            }
+        });
+    });
+</script>
+
 {% endblock content_checkout %}

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     # 4. App của dự án
     'app',
+    'django.contrib.humanize',  
 ]
 
 MIDDLEWARE = [
@@ -84,7 +85,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres.vnymenleyclysclxnljj',
+        'USER': 'postgres.tcytdxhscmhxxevyvtjg',
         'PASSWORD': 'sueu5svcnLBSSiA0',
         'HOST': 'aws-1-ap-southeast-1.pooler.supabase.com',
         'PORT': '6543',

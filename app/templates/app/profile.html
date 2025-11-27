@@ -1,0 +1,114 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block main-content %}
+<div class="container my-5">
+    <h1 class="mb-4 fw-bold">Hồ Sơ Của Bạn</h1>
+
+    <!-- Phần thông tin cá nhân -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Thông Tin Cá Nhân</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Tên đăng nhập:</strong> {{ request.user.username }}</p>
+                    <p><strong>Email:</strong> {{ customer.email }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Ngày tham gia:</strong> {{ request.user.date_joined|date:"d/m/Y" }}</p>
+                    <!-- Thêm các thông tin khác nếu có -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phần các đơn hàng hiện tại -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">Đơn Hàng Hiện Tại</h5>
+        </div>
+        <div class="card-body">
+            {% if current_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Mã Đơn</th>
+                                <th scope="col">Ngày Đặt</th>
+                                <th scope="col">Tổng Tiền</th>
+                                <th scope="col">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in current_orders %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.date_ordered|date:"d/m/Y" }}</td>
+                                <td>{{ order.total_amount|floatformat:0|intcomma }}₫</td>
+                                <td><span class="badge bg-info">{{ order.get_status_display }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Bạn không có đơn hàng nào đang xử lý.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Phần lịch sử đơn hàng -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Lịch Sử Mua Hàng</h5>
+        </div>
+        <div class="card-body">
+            {% if past_orders %}
+                <div class="accordion" id="orderHistoryAccordion">
+                    {% for order in past_orders %}
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header" id="heading{{order.id}}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{order.id}}" aria-expanded="false" aria-controls="collapse{{order.id}}">
+                                <div class="d-flex justify-content-between w-100 pe-3">
+                                    <span><strong>Đơn hàng #{% widthratio forloop.counter 1 1 %}{{ order.id }}</strong> - Ngày: {{ order.date_ordered|date:"d/m/Y" }}</span>
+                                    <span class="fw-bold text-danger">{{ order.total_amount|floatformat:0|intcomma }}₫</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{order.id}}" class="accordion-collapse collapse" aria-labelledby="heading{{order.id}}" data-bs-parent="#orderHistoryAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Địa chỉ giao hàng:</strong> {{ order.shipping_address }}, {{ order.shipping_city }}</p>
+                                <p><strong>Trạng thái:</strong> <span class="badge bg-success">{{ order.get_status_display }}</span></p>
+                                <hr>
+                                <h6>Các sản phẩm đã mua:</h6>
+                                <ul class="list-group list-group-flush">
+                                    {% for item in order.items.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <a href="{% url 'product_detail' item.product_original.id %}">
+                                                {{ item.product_name_snapshot }}
+                                            </a>
+                                            <small class="d-block text-muted">Số lượng: {{ item.quantity }}</small>
+                                        </div>
+                                        <!-- Nút đánh giá chỉ hiển thị cho đơn hàng đã thanh toán/hoàn thành -->
+                                        <a href="{% url 'product_detail' item.product_original.id %}#comment-section" class="btn btn-outline-primary btn-sm">
+                                            Viết đánh giá
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">Bạn chưa có lịch sử mua hàng.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

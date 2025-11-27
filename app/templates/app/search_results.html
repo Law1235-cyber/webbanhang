@@ -2,40 +2,111 @@
 {% load static %}
 
 {% block search-content %}
+<style>
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 12px;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .product-img-container {
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 15px;
+    }
+
+    .product-img-custom {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s;
+    }
+
+    .product-card:hover .product-img-custom {
+        transform: scale(1.05);
+    }
+</style>
+
 <div class="container my-5">
     <div class="row">
         <div class="col-12">
-            <h1>Kết quả tìm kiếm</h1>
-            
+            <h1 class="fw-bold text-secondary">Kết quả tìm kiếm</h1>
+
             {% if query %}
-                <p class="lead">Hiển thị kết quả cho: <strong>"{{ query }}"</strong></p>
+            <p class="lead">Hiển thị kết quả cho: <strong class="text-primary">"{{ query }}"</strong></p>
             {% else %}
-                <p class="lead">Vui lòng nhập từ khóa tìm kiếm.</p>
+            <p class="lead text-danger">Vui lòng nhập từ khóa tìm kiếm.</p>
             {% endif %}
 
-            <hr>
+            <hr class="my-4">
 
             {% if products %}
-                <div class="row">
-                    {% for product in products %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card shadow-sm">
-                                <img src="{{ product.imageURL }}" class="card-img-top" alt="{{ product.name }}">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ product.name }}</h5>
-                                    <p class="text-danger">${{ product.price|floatformat:2 }}</p>
-                                    <a href="{% url 'product_detail' pk=product.id %}" class="btn btn-sm btn-info">Xem chi tiết</a>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm product-card">
+                        <a href="{% url 'product_detail' pk=product.id %}" class="product-img-container">
+                            <img src="{{ product.imageURL }}" class="card-img-top product-img-custom"
+                                alt="{{ product.name }}">
+                        </a>
+
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-center mb-2"
+                                style="height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                <a href="{% url 'product_detail' pk=product.id %}"
+                                    class="text-decoration-none text-dark fw-bold">
+                                    {{ product.name }}
+                                </a>
+                            </h6>
+
+                            <hr class="my-2 opacity-25" />
+
+                            <h5 class="text-danger text-center fw-bold mb-3 mt-auto">
+                                {{product.price|floatformat:0}}₫
+                            </h5>
+
+                            <div class="d-grid gap-2">
+                                <button data-product="{{ product.id }}" data-action="add"
+                                    class="btn btn-outline-primary add-btn update-cart-btn btn-sm fw-bold">
+                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                </button>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'product_detail' pk=product.id %}"
+                                        class="btn btn-light border btn-sm flex-grow-1">Xem chi tiết</a>
+                                    <a class="btn btn-outline-danger btn-sm" href="{% url 'cart'%}"
+                                        title="Đi tới giỏ hàng">
+                                        <span style="font-size: 0.9rem;">&#10132;</span> Mua
+                                    </a>
                                 </div>
                             </div>
+
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
+                {% endfor %}
+            </div>
             {% else %}
-                {% if query %}
-                    <div class="alert alert-warning">Không tìm thấy sản phẩm nào khớp với từ khóa "{{ query }}".</div>
-                {% endif %}
+            {% if query %}
+            <div class="alert alert-warning text-center p-5 shadow-sm rounded-3">
+                <i class="bi bi-search fs-1 text-warning d-block mb-3"></i>
+                <h4 class="alert-heading fw-bold">Rất tiếc!</h4>
+                <p>Không tìm thấy sản phẩm nào khớp với từ khóa <strong>"{{ query }}"</strong>.</p>
+                <hr>
+                <p class="mb-0">Vui lòng thử lại với từ khóa khác hoặc <a href="{% url 'home' %}"
+                        class="alert-link">quay lại trang chủ</a>.</p>
+            </div>
             {% endif %}
-            
+            {% endif %}
+
         </div>
     </div>
 </div>

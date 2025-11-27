@@ -1,32 +1,18 @@
-# app/context_processors.py
-
-from .models import Customer, Order, Product # Đảm bảo bạn import đúng models
-from django.contrib.auth.models import User
+from .models import Cart
 
 def cart_context(request):
     """
-    Thêm các biến dùng chung vào context của TẤT CẢ các template.
-    - cartItems: Số lượng mặt hàng trong giỏ hàng.
-    - products: Tất cả sản phẩm để hiển thị.
+    Thêm số lượng mặt hàng trong giỏ hàng vào context của tất cả các template.
+    - cartItems: Số lượng mặt hàng trong giỏ hàng (sử dụng model Cart).
     """
     cartItems = 0
     if request.user.is_authenticated:
         try:
-            # Lấy hoặc tạo Customer cho người dùng đã đăng nhập
-            customer, created = Customer.objects.get_or_create(
-                user=request.user,
-                defaults={'name': request.user.username, 'email': request.user.email}
-            )
-            
-            # Lấy Order chưa hoàn thành (Giỏ hàng)
-            order, created = Order.objects.get_or_create(customer=customer, complete=False)
-            cartItems = order.get_cart_items
-            
-        except Exception:
-            # Xử lý nếu có lỗi xảy ra (ví dụ: Customer model bị lỗi)
+            # Lấy giỏ hàng (Cart) được liên kết với người dùng
+            cart = Cart.objects.get(user=request.user)
+            cartItems = cart.get_cart_items
+        except Cart.DoesNotExist:
+            # Nếu người dùng đã đăng nhập nhưng chưa có giỏ hàng, cartItems vẫn là 0
             cartItems = 0
-
-    # Lấy tất cả sản phẩm
-    products = Product.objects.all()
-
-    return {'cartItems': cartItems, 'products': products}
+            
+    return {'cartItems': cartItems}
