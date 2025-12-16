@@ -14,7 +14,17 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-#&t(x&a6$w9o*q#n2so6(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['webbanhang1.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'webbanhang1.onrender.com', 
+    'localhost', 
+    '127.0.0.1', 
+    'untransgressed-nonhereditarily-yuette.ngrok-free.dev' # <--- Thêm dòng này
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://untransgressed-nonhereditarily-yuette.ngrok-free.dev', 
+    'https://webbanhang1.onrender.com'
+]
 
 LOGIN_REDIRECT_URL = '/'
 

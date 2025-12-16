@@ -159,7 +159,7 @@
               <div class="d-grid gap-2">
                 <button data-product="{{ product.id }}" data-action="add"
                   class="btn btn-outline-primary add-btn update-cart-btn btn-sm fw-bold">
-                  <i class="bi bi-cart-plus"></i> Thêm
+                  <i class="bi bi-cart-plus"></i> Thêm vào giỏ
                 </button>
 
                 <div class="d-flex gap-2">
@@ -167,7 +167,7 @@
                     title="Xem">
                     Xem
                   </a>
-                  <a class="btn btn-outline-danger btn-sm" href="{% url 'cart'%}" title="Mua ngay">
+                  <a class="btn btn-outline-danger btn-sm" href="{% url 'add_to_cart_and_redirect' pk=product.id %}" title="Mua ngay">
                     <span style="font-size: 0.9rem;">&#10132;</span> Mua
                   </a>
                 </div>

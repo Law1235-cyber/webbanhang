@@ -125,7 +125,7 @@
         padding-left: 15px;
       "
     >
-      Danh mục nổi bật
+      Danh mục
     </h4>
     <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
       {% for cat in categories %}
@@ -156,8 +156,7 @@
   </h3>
 
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
-    <!-- {% for product in products[:10]%} -->
-    {% for product in products limit: 10 %}
+    {% for product in products|slice:":10" %}
     <div class="col">
       <div class="card h-100 shadow-sm product-card">
         <a
@@ -213,12 +212,8 @@
               >
                 Xem chi tiết
               </a>
-              <a
-                class="btn btn-outline-danger btn-sm"
-                href="{% url 'cart'%}"
-                title="Đi tới giỏ hàng"
-              >
-                <span style="font-size: 0.9rem">&#10132;</span> Mua
+              <a class="btn btn-outline-danger btn-sm" href="{% url 'add_to_cart_and_redirect' pk=product.id %}" title="Mua ngay">
+                <span style="font-size: 0.9rem;">&#10132;</span> Mua
               </a>
             </div>
           </div>

@@ -13,6 +13,7 @@ urlpatterns = [
     
     # --- GIỎ HÀNG & SẢN PHẨM ---
     path('cart/', views.cart, name='cart'),
+    path('add_to_cart_and_redirect/<int:pk>/', views.add_to_cart_and_redirect, name='add_to_cart_and_redirect'),
     path('update_item/', views.updateItem, name='update_item'),
     path('product/<int:pk>/', views.product_detail, name='product_detail'),
     path('search/', views.search, name='search'),

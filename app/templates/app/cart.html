@@ -59,8 +59,8 @@
                     <button data-product="{{ item.product.id }}" data-action="remove"
                       class="btn btn-outline-secondary update-cart-btn">
                       -
-                    </button>
-                    <input type="text" class="form-control text-center" value="{{ item.quantity }}" readonly>
+                    </button> <label for="quantity-{{ item.product.id }}" class="visually-hidden">Số lượng sản phẩm {{ item.product.name }}</label>
+                    <input type="text" id="quantity-{{ item.product.id }}" class="form-control text-center" value="{{ item.quantity }}" readonly title="Số lượng sản phẩm {{ item.product.name }}" placeholder="Số lượng">
                     <button data-product="{{ item.product.id }}" data-action="add"
                       class="btn btn-outline-secondary update-cart-btn">
                       +
@@ -72,7 +72,7 @@
                   <span class="fw-bold text-danger">{{ item.get_total|floatformat:0 }}₫</span>
                 </div>
                 <div class="col-12 col-md-1 text-center mt-2 mt-md-0">
-                    <button data-product="{{item.product.id}}" data-action="delete" class="btn btn-outline-danger btn-sm update-cart-btn">
+                    <button data-product="{{item.product.id}}" data-action="delete" title="Xóa sản phẩm" class="btn btn-outline-danger btn-sm update-cart-btn">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>

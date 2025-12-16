@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 import json # Đảm bảo đã có import json
+import logging # Add logging for debugging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
@@ -8,6 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login, logout
 from django.contrib.auth.decorators import login_required
 import json
+import re
 from .models import Product, Comment
 from .forms import CommentForm
 
@@ -252,21 +254,37 @@ def updateItem(request):
         data = json.loads(request.body)
         productId = data.get('productId')
         action = data.get('action')
-        
+
+        if not productId or not action:
+            return JsonResponse({'error': 'productId and action are required'}, status=400)
+
         product = Product.objects.get(id=productId)
+        cart, cart_created = Cart.objects.get_or_create(user=request.user)
         
-        # 1. Lấy Giỏ hàng của User hiện tại
-        cart, created = Cart.objects.get_or_create(user=request.user) 
+        # --- FIX for MultipleObjectsReturned ---
+        # This logic now handles cases where duplicate CartItems might exist.
         
-        # 2. Lấy hoặc tạo CartItem trong Cart đó
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product) 
+        # 1. Get all items for this product in the cart.
+        cart_items = CartItem.objects.filter(cart=cart, product=product)
         
-        # Logic cập nhật số lượng
+        cart_item = None
+        if cart_items.exists():
+            # 2. Consolidate duplicates into the first item.
+            cart_item = cart_items.first()
+            
+            # If there are more than one, sum quantities and delete extras.
+            if cart_items.count() > 1:
+                total_quantity = sum(item.quantity for item in cart_items)
+                cart_item.quantity = total_quantity
+                # Delete the other duplicate items.
+                cart_items.exclude(pk=cart_item.pk).delete()
+        else:
+            # 3. If no item exists, create a new one with quantity 0.
+            cart_item = CartItem.objects.create(cart=cart, product=product, quantity=0)
+
+        # 4. Now, apply the action to the single, consolidated item.
         if action == 'add':
-            if created:
-                cart_item.quantity = 1
-            else:
-                cart_item.quantity += 1
+            cart_item.quantity += 1
         elif action == 'remove':
             cart_item.quantity -= 1
         elif action == 'delete':
@@ -274,17 +292,22 @@ def updateItem(request):
             
         cart_item.save()
 
+        # 5. If quantity is zero or less, delete the item.
         if cart_item.quantity <= 0:
             cart_item.delete()
             
-        # Trả về tổng số lượng sản phẩm trong giỏ hàng
+        # 6. Return the total number of items in the cart.
         total_items = cart.get_cart_items
-        return JsonResponse({'message': 'Item was updated', 'total_items': total_items})
+        return JsonResponse({'message': 'Item was updated successfully', 'total_items': total_items})
         
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
     except Product.DoesNotExist:
         return JsonResponse({'error': 'Product not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        # Log the exception for admin/developer review
+        print(f"Error in updateItem: {e}") 
+        return JsonResponse({'error': 'An unexpected error occurred.'}, status=500)
 
 # --- 9. TRANG HIỂN THỊ MÃ QR ---
 def payment_qr(request, order_id):
@@ -301,10 +324,20 @@ def payment_qr(request, order_id):
 # --- 10. API KIỂM TRA TRẠNG THÁI (Cho Javascript ở trang QR) ---
 def check_payment_status(request, order_id):
     try:
-        order = Order.objects.get(id=order_id)
-        return JsonResponse({'complete': order.complete})
-    except Order.DoesNotExist:
-        return JsonResponse({'complete': False})
+        # Sử dụng .values() để chỉ lấy trường 'complete' và tránh các vấn đề về ORM object caching.
+        # .first() sẽ trả về một dict (vd: {'complete': True}) hoặc None nếu không tìm thấy.
+        order_status = Order.objects.filter(id=order_id).values('complete').first()
+
+        if order_status:
+            # Nếu tìm thấy, trả về giá trị của 'complete'.
+            return JsonResponse({'complete': order_status['complete']})
+        else:
+            # Nếu không tìm thấy đơn hàng, trả về False.
+            return JsonResponse({'complete': False, 'error': 'Order not found'})
+            
+    except Exception as e:
+        logging.error(f"Lỗi trong check_payment_status cho order {order_id}: {e}")
+        return JsonResponse({'complete': False, 'error': 'An error occurred'})
 
 # --- 11. TRANG THÔNG BÁO THÀNH CÔNG ---
 def payment_success(request):
@@ -319,42 +352,45 @@ def sepay_webhook(request):
             data = json.loads(request.body)
             
             # Lấy các thông tin từ SePay
-            transferContent = data.get('content')
             transferAmount = data.get('transferAmount')
+            transferContent = data.get('content')
             transferType = data.get('transferType')
             transaction_id = data.get('referenceCode')
 
-            # Chỉ xử lý giao dịch tiền vào (in)
+            # Kiểm tra giao dịch tiền vào (in)
             if transferType != 'in':
                 return JsonResponse({'success': False, 'message': 'Not an incoming transaction'})
 
-            # --- LOGIC TÌM ORDER ID ---
-            # Lọc lấy số từ nội dung chuyển khoản (VD: "DH123" -> 123)
-            order_id_str = ''.join(filter(str.isdigit, transferContent))
+            # --- CÔNG NGHỆ MỚI: Dùng Regex tìm chữ "DH" + Số ---
+            # Chỉ bắt những nội dung có dạng "DH15", "dh15", "DH 15"
+            match = re.search(r'DH(\d+)', transferContent, re.IGNORECASE)
             
-            if not order_id_str:
-                 return JsonResponse({'success': False, 'message': 'No Order ID found in content'})
+            if not match:
+                 return JsonResponse({'success': False, 'message': 'No Order ID pattern (e.g., DH15) found in content'})
 
-            order_id = int(order_id_str)
+            order_id = int(match.group(1)) # Lấy con số 15 ra
 
-            # Tìm đơn hàng trong Database
+            # Tìm đơn hàng
             order = Order.objects.filter(id=order_id).first()
 
             if order:
-                # Kiểm tra số tiền (phải lớn hơn hoặc bằng tổng tiền đơn hàng)
-                # SỬA LỖI: Dùng order.total_amount đã lưu thay vì get_cart_total
+                # --- SỬA LỖI QUAN TRỌNG TẠI ĐÂY ---
+                # Dùng total_amount (Trường lưu giá cố định trong Order)
                 order_total = float(order.total_amount)
                 
+                # So sánh số tiền (dùng >= để an toàn phòng khi khách chuyển dư)
                 if transferAmount >= order_total:
                     order.complete = True
-                    order.status = 'Paid'
+                    order.status = 'Paid' # Cập nhật thêm trạng thái text cho rõ ràng
                     order.transaction_id = transaction_id
-                    order.payment_method = 'Online' # Cập nhật phương thức thanh toán
+                    order.payment_method = 'Online'
                     order.save()
                     
                     print(f"WEBHOOK: Đơn hàng {order_id} đã thanh toán thành công!")
                     return JsonResponse({'success': True, 'message': 'Payment confirmed'})
                 else:
+                    # In log chi tiết để dễ debug nếu khách chuyển thiếu
+                    print(f"WEBHOOK: Sai số tiền đơn {order_id}. Nhận: {transferAmount}, Cần: {order_total}")
                     return JsonResponse({'success': False, 'message': 'Amount mismatch'})
             else:
                  return JsonResponse({'success': False, 'message': 'Order not found'})
@@ -404,3 +440,34 @@ def product_tong(request):
     # Truyền thêm 'categories' vào context
     context = {'page_obj': page_obj, 'categories': categories} 
     return render(request, 'app/product.html', context)
+
+@login_required(login_url='login')
+def add_to_cart_and_redirect(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    try:
+        product = Product.objects.get(id=pk)
+        cart, cart_created = Cart.objects.get_or_create(user=request.user)
+        
+        cart_items = CartItem.objects.filter(cart=cart, product=product)
+        
+        cart_item = None
+        if cart_items.exists():
+            cart_item = cart_items.first()
+            if cart_items.count() > 1:
+                total_quantity = sum(item.quantity for item in cart_items)
+                cart_item.quantity = total_quantity
+                cart_items.exclude(pk=cart_item.pk).delete()
+        else:
+            cart_item = CartItem.objects.create(cart=cart, product=product, quantity=0)
+
+        cart_item.quantity += 1
+        cart_item.save()
+
+    except Product.DoesNotExist:
+        pass 
+    except Exception as e:
+        print(f"Error in add_to_cart_and_redirect: {e}")
+
+    return redirect('cart')
