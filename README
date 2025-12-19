@@ -1,1 +1,37 @@
+## 📸 Hình ảnh Giao diện (Screenshots)
 
+### 1. Giao diện Khách hàng (Frontend)
+
+| Trang chủ & Danh sách sản phẩm (Home Page) |
+|:---:|
+| <img src="static/img/home.png" width="100%" alt="Thay tên file ảnh trang chủ vào đây"> |
+| *Giao diện được thiết kế hiện đại, tập trung vào hình ảnh sản phẩm* |
+
+<br>
+
+| Trang Chi tiết Sản phẩm (Product Detail) |
+|:---:|
+| <img src="static/img/detail.png" width="100%" alt="Thay tên file ảnh chi tiết vào đây"> |
+| *Hiển thị đầy đủ thông số kỹ thuật và nút đặt mua* |
+
+<br>
+
+| Giỏ hàng & Thanh toán QR (Cart & Checkout) |
+|:---:|
+| <img src="static/img/cart.png" width="100%" alt="Thay tên file ảnh giỏ hàng vào đây"> |
+| *Tích hợp tính năng quét mã QR ngân hàng tiện lợi* |
+
+---
+
+### 2. Giao diện Quản trị (Admin Dashboard)
+
+| Dashboard Thống kê (Analytics) |
+|:---:|
+| <img src="static/img/dashboard.png" width="100%" alt="Thay tên file ảnh dashboard vào đây"> |
+| *Biểu đồ trực quan giúp theo dõi doanh thu và sản phẩm tồn kho* |
+
+<br>
+
+| Quản lý Sản phẩm (Product Management) |
+|:---:|
+| <img src="static/img/product.png" width="100%" alt="Thay tên file ảnh quản lý vào đây"> |
