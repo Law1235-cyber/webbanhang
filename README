@@ -1,1 +1,73 @@
 
+# MyStore - Web Bán Hàng Laptop (Django Framework)
+
+Dự án website thương mại điện tử chuyên kinh doanh Laptop, được xây dựng trên nền tảng Python Django. Hệ thống cung cấp giải pháp trọn gói từ giao diện mua sắm cho khách hàng đến trang Dashboard quản trị mạnh mẽ cho người bán.
+
+## Tính Năng Chính (Key Features)
+
+Dự án được chia làm 2 phân hệ rõ ràng:
+
+### 1. Dành cho Khách Hàng (Frontend)
+
+* **Trải nghiệm mua sắm:** Giao diện trực quan, hiển thị danh sách sản phẩm theo dạng lưới, xem chi tiết cấu hình Laptop.
+* **Tìm kiếm và Lọc:** Hỗ trợ tìm kiếm sản phẩm theo tên và lọc sản phẩm theo Thương hiệu (Dell, HP, Macbook, Asus...).
+* **Giỏ hàng thông minh:** Thêm sản phẩm, cập nhật số lượng, tính tổng tiền tự động.
+* **Thanh toán đa dạng:** Hỗ trợ điền thông tin giao hàng chi tiết, mô phỏng thanh toán chuyển khoản qua mã QR Code, và thanh toán khi nhận hàng (COD).
+* **Quản lý tài khoản:** Đăng ký, đăng nhập, xem lại lịch sử đơn hàng và trạng thái xử lý đơn hàng.
+
+### 2. Dành cho Quản Trị Viên (Admin Dashboard)
+
+* **Dashboard thống kê:** Tích hợp biểu đồ trực quan (sử dụng Chart.js) thể hiện số lượng sản phẩm, phân bố danh mục và theo dõi các hoạt động gần đây trên hệ thống.
+* **Quản lý sản phẩm (CRUD):** Dễ dàng thêm mới, sửa thông tin, xóa sản phẩm và cập nhật hình ảnh.
+* **Quản lý đơn hàng:** Theo dõi danh sách đơn đặt hàng, xem thông tin khách hàng và tình trạng thanh toán.
+* **Phân quyền và Bảo mật:** Hệ thống xác thực người dùng, chỉ tài khoản Admin mới có quyền truy cập trang quản trị.
+
+---
+
+## Hình ảnh Giao diện (Screenshots)
+
+Dưới đây là một số hình ảnh thực tế về giao diện của ứng dụng.
+
+### Giao diện Người dùng (Frontend)
+
+**Trang Chủ và Danh sách Sản phẩm:**
+![Trang chủ](duong_dan_den_anh_trang_chu.png)
+
+**Trang Chi tiết Sản phẩm:**
+![Chi tiết sản phẩm](duong_dan_den_anh_chi_tiet.png)
+
+**Giỏ hàng và Thanh toán (QR Code):**
+![Giỏ hàng và Thanh toán](duong_dan_den_anh_gio_hang.png)
+
+### Giao diện Quản trị (Backend)
+
+**Dashboard Thống kê (Chart.js):**
+![Admin Dashboard](duong_dan_den_anh_dashboard.png)
+
+**Trang Quản lý Sản phẩm:**
+![Quản lý sản phẩm](duong_dan_den_anh_quan_ly_sp.png)
+
+---
+
+## Công Nghệ Sử Dụng (Tech Stack)
+
+* **Backend:** Python 3, Django Framework (Kiến trúc MTV).
+* **Database:** SQLite (Mặc định), Django ORM.
+* **Frontend:** HTML5, CSS3, Bootstrap 5 (Responsive), Jinja2 Templates.
+* **Các thư viện chính:**
+    * Django (Core framework)
+    * Chart.js (Vẽ biểu đồ thống kê)
+    * Pandas (Xử lý dữ liệu)
+    * Pillow (Xử lý hình ảnh)
+
+---
+
+## Hướng Dẫn Cài Đặt (Installation Guide)
+
+Để chạy dự án này trên môi trường local, vui lòng thực hiện các bước sau:
+
+**1. Clone dự án về máy:**
+
+```bash
+git clone [https://github.com/Law1235-cyber/webbanhang.git](https://github.com/Law1235-cyber/webbanhang.git)
+cd webbanhang
